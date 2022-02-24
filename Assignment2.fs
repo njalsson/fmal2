@@ -1,8 +1,8 @@
 // T-501-FMAL, Spring 2022, Assignment 2
 
 (*
-STUDENT NAMES HERE: ...
-
+Friðrik Njálsson
+Daníel Freyr Gylfason
 
 *)
 

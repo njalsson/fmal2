@@ -1,0 +1,11 @@
+
+.ionide/symbolCache.db
+.fake
+.ionide
+.DS_Store
+bin/
+obj/
+.vscode/
+.DS_Store
+.DS_Store/
+Assignment2.fsproj
