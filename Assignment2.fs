@@ -135,6 +135,8 @@ let rec tokenize (cs : char list) : token list =
     | '\n'::cs -> tokenize cs
     | '('::cs  -> LPAR :: tokenize cs
     | ')'::cs  -> RPAR :: tokenize cs
+    | ','::cs  -> COMMA :: tokenize cs
+    | '_'::cs  -> UNDERSCORE :: tokenize cs
     | c::cs when isDigit c -> tokenizeInt cs (digit2Int c)
     | c::cs when isLowercaseLetter c -> tokenizeWord cs (string c)
     | c::cs -> ERROR c :: tokenize cs
