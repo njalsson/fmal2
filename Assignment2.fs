@@ -85,12 +85,29 @@ let rec checkPattern (p : pattern) : bool =
 ////////////////////////////////////////////////////////////////////////
 // Problem 1                                                          //
 ////////////////////////////////////////////////////////////////////////
-
+// type expr =
+//     | Var of string
+//     | Let of pattern * expr * expr
+//     | Pair of expr * expr
+//     | Num of int
+//     | Plus of expr * expr
+//     | Times of expr * expr
 // (Write the function checkAllPatterns.)
+//  In F#, no variable can appear more than once in a single pattern. For example, the expression
+//          let x, (_, x) = (1, (2, 3)) in 4
+// is not allowed, but
+//          let x, y = (1, (2, 3)) in let (_, x) = y in 4
+// is OK. Write a function checkAllPatterns : expr -> bool that takes an expression, 
+// and returns true if this rule is followed, false if it is not. 
+// You can use checkPattern : pattern -> bool to do this.
+let rec checkAllPatterns (e : expr)= 
+    match e with
+    | Let(x,y,z) -> checkPattern(x) && checkAllPatterns(y) && checkAllPatterns(z)
+    | Pair(x,y) -> x = y || checkAllPatterns(x) && checkAllPatterns(y)
+    | _ -> true
 
-let rec checkAllPatterns (e : expr) : bool = failwith "Not implemented"
-
-
+// let x = checkAllPatterns (Let (PPair (PVar "x", PPair (PUnderscore, PVar "x")), Pair (Num 1, Pair (Num 2, Num 3)), Num 4))
+// printfn("%b", x)
 type token =
     | NAME of string
     | LET | EQUAL | IN
