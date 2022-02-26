@@ -103,11 +103,11 @@ let rec checkPattern (p : pattern) : bool =
 let rec checkAllPatterns (e : expr)= 
     match e with
     | Let(x,y,z) -> checkPattern(x) && checkAllPatterns(y) && checkAllPatterns(z)
-    | Pair(x,y) -> x = y || checkAllPatterns(x) && checkAllPatterns(y)
+    | Pair(Var x, Var y) -> x = y
+    | Pair(x,y) -> true && checkAllPatterns(y) 
     | _ -> true
 
-// let x = checkAllPatterns (Let (PPair (PVar "x", PPair (PUnderscore, PVar "x")), Pair (Num 1, Pair (Num 2, Num 3)), Num 4))
-// printfn("%b", x)
+
 type token =
     | NAME of string
     | LET | EQUAL | IN
@@ -173,7 +173,11 @@ let lex s = tokenize (string2Chars s)
 ////////////////////////////////////////////////////////////////////////
 // Problem 3                                                          //
 ////////////////////////////////////////////////////////////////////////
-
+// Assignment2.fs also contains a broken implementation of a parser, 
+// which will fail to parse a let binding in which the pattern is not just a variable. 
+// Change the implementations of parsePattern and parseSimplePattern so that the other forms of pattern 
+// (pairs and the underscore) are parsed correctly. Commas are non-associative, 
+// so parsing of let x, y, z = w in 2 should fail, but let (x, y), z = w in 2 and let x, (y, z) = w in 2 are OK.
 // (Modify the functions parsePattern and parseSimplePattern
 // to handle a prefix of the token list corresponding to a pair resp.
 // the underscore.)
@@ -346,6 +350,13 @@ let rec neval (e : nexpr) (env : envir) : value =
 ////////////////////////////////////////////////////////////////////////
 // Problem 5                                                          //
 ////////////////////////////////////////////////////////////////////////
+// The type nexpr represents the abstract syntax of a language similar to the previous one, 
+// except that pattern matching is not allowed in let bindings, but NFst and NSnd can be used to get the first 
+// and second components of a pair (they correspond to fst and snd in F#).
+// 5.
+// (i) Write a function nexprToExpr : nexpr -> expr that converts between the two languages. 
+// NFst and NSnd should be implemented by pattern matching. For every expression e : nexpr 
+// and environment env : envir, the results of neval e env and eval (nexprToExpr e) env should be the same.
 
 // (i) (Write the function nexprToExpr.)
 
@@ -353,6 +364,9 @@ let rec nexprToExpr (e : nexpr) : expr = failwith "Not implemented"
 
 
 // (ii) (Complete the function bindPattern used by exprToNexpr.)
+// (ii) We can also convert from expr to nexpr, by replacing each pattern-matching 
+// let binding with several ordinary let bindings that use NFst and NSnd. For example, we can convert
+
 
 let rec bindPattern (p : pattern) (rhs : nexpr) (body : nexpr) : nexpr =
   match p with
