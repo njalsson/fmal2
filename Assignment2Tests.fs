@@ -11,7 +11,7 @@ val it: bool = false
 checkAllPatterns (Pair (Var "x", Var "x"));;
 val it: bool = true
 checkAllPatterns(Pair (Var "y", Var "x"))
-val it: bool = false
+val it: bool = true
 checkAllPatterns (Pair (Num 1, Let (PPair (PVar "x", PVar "x"), Num 2, Num 3)));;
 val it: bool = false
 checkAllPatterns (Pair (Num 1, Let (PPair (PVar "x", PUnderscore), Num 2, Num 3)));;
