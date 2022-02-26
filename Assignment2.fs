@@ -103,8 +103,7 @@ let rec checkPattern (p : pattern) : bool =
 let rec checkAllPatterns (e : expr)= 
     match e with
     | Let(x,y,z) -> checkPattern(x) && checkAllPatterns(y) && checkAllPatterns(z)
-    | Pair(Var x, Var y) -> x = y
-    | Pair(x,y) -> true && checkAllPatterns(y) 
+    | Pair(x,y) -> x = y || checkAllPatterns(x) && checkAllPatterns(y) 
     | _ -> true
 
 
@@ -181,7 +180,6 @@ let lex s = tokenize (string2Chars s)
 // (Modify the functions parsePattern and parseSimplePattern
 // to handle a prefix of the token list corresponding to a pair resp.
 // the underscore.)
-
 let rec parseExpr (ts : token list) : expr * token list =
     let e1, ts = parseSum ts
     match ts with
@@ -234,6 +232,7 @@ and parseSimplePattern (ts : token list) : pattern * token list =
         match ts with
         | RPAR :: ts -> p, ts
         | _ -> failwith "left paren without right paren"
+    | LET :: ts -> parsePattern ts
     | _  -> failwith "not a pattern"
 
 
@@ -242,6 +241,7 @@ let parse (ts : token list) : expr =
     if ts = [] then e else failwithf "unconsumed tokens"
 let lexParse (s : string) : expr = parse (lex s)
 
+// parse [LET; UNDERSCORE; EQUAL; NAME "x"; IN; INT 3];;
 
 
 
