@@ -86,27 +86,27 @@ val it: expr = Let (PPair (PVar "x", PVar "y"), Var "p", Plus (Var "q", Var "r")
 
 // Test cases for Problem 5
 
-// > eval (nexprToExpr (NPlus (NVar "x", NNum 1))) ["x", VNum 100];;
-// val it: value = VNum 101
-// > eval (nexprToExpr (NPair (NPlus (NNum 1, NNum 2), NTimes (NNum 3, NNum 4)))) [];;
-// val it: value = VPair (VNum 3, VNum 12)
-// > eval (nexprToExpr (NPair (NPlus (NNum 1, NNum 2), NTimes (NNum 3, NNum 4)))) [];;
-// val it: value = VPair (VNum 3, VNum 12)
-// > eval (nexprToExpr (NFst (NPair (NNum 1, NNum 2)))) [];;
-// val it: value = VNum 1
-// > eval (nexprToExpr (NSnd (NPair (NNum 1, NNum 2)))) [];;
-// val it: value = VNum 2
-// > eval (nexprToExpr (NLet ("x", NPair (NNum 4, NNum 5), NTimes (NFst (NVar "x"), NSnd (NVar "x"))))) [];;
-// val it: value = VNum 20
-// > eval (nexprToExpr (NFst (NSnd (NFst (NVar "x"))))) ["x", VPair (VPair (VPair (VNum 1, VNum 2), VPair (VNum 3, VNum 4)), VNum 5)];;
-// val it: value = VNum 3
+eval (nexprToExpr (NPlus (NVar "x", NNum 1))) ["x", VNum 100];;
+val it: value = VNum 101
+eval (nexprToExpr (NPair (NPlus (NNum 1, NNum 2), NTimes (NNum 3, NNum 4)))) [];;
+val it: value = VPair (VNum 3, VNum 12)
+eval (nexprToExpr (NPair (NPlus (NNum 1, NNum 2), NTimes (NNum 3, NNum 4)))) [];;
+val it: value = VPair (VNum 3, VNum 12)
+eval (nexprToExpr (NFst (NPair (NNum 1, NNum 2)))) [];;
+val it: value = VNum 1
+eval (nexprToExpr (NSnd (NPair (NNum 1, NNum 2)))) [];;
+val it: value = VNum 2
+eval (nexprToExpr (NLet ("x", NPair (NNum 4, NNum 5), NTimes (NFst (NVar "x"), NSnd (NVar "x"))))) [];;
+val it: value = VNum 20
+eval (nexprToExpr (NFst (NSnd (NFst (NVar "x"))))) ["x", VPair (VPair (VPair (VNum 1, VNum 2), VPair (VNum 3, VNum 4)), VNum 5)];;
+val it: value = VNum 3
 
-// > neval (exprToNexpr (Let (PPair (PVar "x", PUnderscore), Pair (Num 3, Num 4), Let (PPair (PVar "x", PUnderscore), Pair (Num 1, Num 2), Var "x")))) [];;
-// val it: value = VNum 1
-// > neval (exprToNexpr (Let (PPair (PPair (PVar "x", PVar "y"), PPair (PVar "z", PVar "w")), Var "p", Plus (Var "x", Times (Var "z", Plus (Var "y", Var "w")))))) ["p", VPair (VPair (VNum 1, VNum 2), VPair (VNum 3, VNum 4))];;
-// val it: value = VNum 19
-// > neval (exprToNexpr (Pair (Let (PPair (PVar "x", PVar "y"), Var "p", Plus (Var "x", Var "y")), Var "p"))) ["p", VPair (VNum 10, VNum 11)];;
-// val it: value = VPair (VNum 21, VPair (VNum 10, VNum 11))
+neval (exprToNexpr (Let (PPair (PVar "x", PUnderscore), Pair (Num 3, Num 4), Let (PPair (PVar "x", PUnderscore), Pair (Num 1, Num 2), Var "x")))) [];;
+val it: value = VNum 1
+neval (exprToNexpr (Let (PPair (PPair (PVar "x", PVar "y"), PPair (PVar "z", PVar "w")), Var "p", Plus (Var "x", Times (Var "z", Plus (Var "y", Var "w")))))) ["p", VPair (VPair (VNum 1, VNum 2), VPair (VNum 3, VNum 4))];;
+val it: value = VNum 19
+neval (exprToNexpr (Pair (Let (PPair (PVar "x", PVar "y"), Var "p", Plus (Var "x", Var "y")), Var "p"))) ["p", VPair (VNum 10, VNum 11)];;
+val it: value = VPair (VNum 21, VPair (VNum 10, VNum 11))
 
 
 // Test cases for Problem 6

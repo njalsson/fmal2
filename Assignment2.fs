@@ -8,6 +8,7 @@ Daníel Freyr Gylfason
 
 module Assignment2
 
+
 type pattern =
     | PUnderscore
     | PVar of string
@@ -233,6 +234,7 @@ and parseSimplePattern (ts : token list) : pattern * token list =
         | RPAR :: ts -> p, ts
         | _ -> failwith "left paren without right paren"
     | LET :: ts -> parsePattern ts
+    | EQUAL :: ts -> parsePattern ts
     | _  -> failwith "not a pattern"
 
 
@@ -243,6 +245,7 @@ let lexParse (s : string) : expr = parse (lex s)
 
 // parse [LET; UNDERSCORE; EQUAL; NAME "x"; IN; INT 3];;
 
+// parse [LET; UNDERSCORE; EQUAL; NAME "x"; IN; INT 3];;
 
 
 
@@ -360,8 +363,30 @@ let rec neval (e : nexpr) (env : envir) : value =
 
 // (i) (Write the function nexprToExpr.)
 
-let rec nexprToExpr (e : nexpr) : expr = failwith "Not implemented"
+let rec nexprToExpr (e : nexpr) : expr = 
+    match e with
+    | NLet(x,y,z) -> Let( PVar(x), nexprToExpr y, nexprToExpr z)
+    | NPair(x,y) -> Pair(nexprToExpr x, nexprToExpr y)
+    | NVar(x) -> Var(x)
+    | NNum(x) -> Num(x)
+    | NFst(NPair(x,y)) -> fst(nexprToExpr x, nexprToExpr y)
+    | NSnd(NPair(x,y)) -> snd(nexprToExpr x, nexprToExpr y)
+    // |NFst(x,y) -> fst(nexprToExpr x,nexprToExpr y)
+    | NFst(x) -> nexprToExpr x
+    | NSnd(y) -> nexprToExpr y
+    | NPlus(x,y)  -> Plus(nexprToExpr x,nexprToExpr y)
+    | NTimes(x,y) -> Times(nexprToExpr x,nexprToExpr y)
 
+
+// eval (nexprToExpr (NPair (NPlus (NNum 1, NNum 2), NTimes (NNum 3, NNum 4)))) [];;
+// // val it: value = VPair (VNum 3, VNum 12)
+// eval (nexprToExpr (NPair (NPlus (NNum 1, NNum 2), NTimes (NNum 3, NNum 4)))) [];;
+// // val it: value = VPair (VNum 3, VNum 12)
+// eval (nexprToExpr (NLet ("x", NPair (NNum 4, NNum 5), NTimes (NFst (NVar "x"), NSnd (NVar "x"))))) [];;
+// // val it: value = VNum 20
+let v = eval (nexprToExpr (NFst (NSnd (NFst (NVar "x"))))) ["x", VPair (VPair (VPair (VNum 1, VNum 2), VPair (VNum 3, VNum 4)), VNum 5)]
+// val it: value = VNum 3
+let t = nexprToExpr (NFst (NPair (NNum 11, NNum 12))) 
 
 // (ii) (Complete the function bindPattern used by exprToNexpr.)
 // (ii) We can also convert from expr to nexpr, by replacing each pattern-matching 
@@ -372,7 +397,10 @@ let rec bindPattern (p : pattern) (rhs : nexpr) (body : nexpr) : nexpr =
   match p with
   | PUnderscore -> body
   | PVar x -> NLet (x, rhs, body)
-  | PPair (p1, p2) -> failwith "Not implemented"
+  | PPair (p1,p2) -> match p1,p2 with
+                    | PPair(PVar(x), PVar(y)),PPair(PVar(m), PVar(n)) -> NPair(NPair(NVar(x),NVar(y)),NPair(NVar(m),NVar(n)))
+                    | PVar(x), PVar(y) -> NVar(x)
+
 
 let rec exprToNexpr (e : expr) : nexpr =
   match e with
@@ -388,7 +416,8 @@ let rec exprToNexpr (e : expr) : nexpr =
   | Plus (e1, e2) -> NPlus (exprToNexpr e1, exprToNexpr e2)
   | Times (e1, e2) -> NTimes (exprToNexpr e1, exprToNexpr e2)
 
-
+// neval (exprToNexpr (Let (PPair (PVar "x", PUnderscore), Pair (Num 3, Num 4), Let (PPair (PVar "x", PUnderscore), Pair (Num 1, Num 2), Var "x")))) [];;
+let r = neval (exprToNexpr (Let (PPair (PPair (PVar "x", PVar "y"), PPair (PVar "z", PVar "w")), Var "p", Plus (Var "x", Times (Var "z", Plus (Var "y", Var "w")))))) ["p", VPair (VPair (VNum 1, VNum 2), VPair (VNum 3, VNum 4))];;
 
 
 type renvir = (string * int list) list
