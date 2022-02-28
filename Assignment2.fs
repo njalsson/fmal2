@@ -91,6 +91,7 @@ let rec checkPattern (p : pattern) : bool =
 let rec checkAllPatterns (e : expr) : bool = failwith "Not implemented"
 
 
+
 type token =
     | NAME of string
     | LET | EQUAL | IN
@@ -140,6 +141,7 @@ let rec tokenize (cs : char list) : token list =
     | c::cs when isDigit c -> tokenizeInt cs (digit2Int c)
     | c::cs when isLowercaseLetter c -> tokenizeWord cs (string c)
     | c::cs -> ERROR c :: tokenize cs
+
 and tokenizeInt cs (acc : int) =
     match cs with
     | c::cs when isDigit c -> tokenizeInt cs (acc * 10 + digit2Int c)
@@ -230,6 +232,7 @@ let lexParse (s : string) : expr = parse (lex s)
 type value =
     | VPair of value * value
     | VNum of int
+
 type envir = (string * value) list
 
 let rec lookup x env =
@@ -266,7 +269,13 @@ let rec patternMatch (p : pattern) (v : value) (env : envir) : envir =
 let rec eval (e : expr) (env : envir) : value =
     match e with
     | Var x -> lookup x env
-    | Let (p, erhs, ebody) -> failwith "Not implemented"
+    | Let (p, erhs, ebody) -> 
+        let pVal = eval erhs env
+        let env1  = (p, pVal) :: env
+        eval ebody env1
+
+
+    
     | Pair (e1, e2) -> VPair (eval e1 env, eval e2 env)
     | Num i -> VNum i
     | Plus (e1, e2) -> addValues (eval e1 env) (eval e2 env)
