@@ -36,7 +36,7 @@ val it: bool = true
 
 // Test cases for Problem 2
 
-// > lex "let _ = x in 3";;
+lex "let _ = x in 3";;
 // val it: token list = [LET; UNDERSCORE; EQUAL; NAME "x"; IN; INT 3]
 // > lex "let x, y = (1, 2) in 3";;
 // val it: token list = [LET; NAME "x"; COMMA; NAME "y"; EQUAL; LPAR; INT 1; COMMA; INT 2; RPAR; IN; INT 3]
@@ -71,20 +71,36 @@ val it: expr = Let (PPair (PVar "x", PVar "y"), Var "p", Plus (Var "q", Var "r")
 // message says. For those that add several bindings to the environment,
 // the order of the new bindings isn't important.
 
-// > patternMatch PUnderscore (VNum 1) [];;
+patternMatch PUnderscore (VNum 1) [];;
 // val it: envir = []
-// > patternMatch (PVar "x") (VNum 1) [];;
+patternMatch (PVar "x") (VNum 1) [];;
 // val it: envir = [("x", VNum 1)]
-// > patternMatch (PPair (PUnderscore, PUnderscore)) (VNum 1) [];;
+
+
+patternMatch (PPair (PUnderscore, PUnderscore)) (VNum 1) [];;
 // System.Exception: expected a pair, but given an int
-// > patternMatch (PPair (PUnderscore, PVar "a")) (VPair (VNum 1, VPair (VNum 10, VNum 20))) [];;
-// val it: envir = [("a", VPair (VNum 10, VNum 20))]
-// > patternMatch (PPair (PUnderscore, PVar "a")) (VPair (VNum 1, VPair (VNum 10, VNum 20))) [("x", VNum 50); ("y", VPair (VNum 51, VNum 52))];;
-// val it: envir = [("a", VPair (VNum 10, VNum 20)); ("x", VNum 50); ("y", VPair (VNum 51, VNum 52))]
-// > patternMatch (PPair (PUnderscore, PPair (PVar "a", PVar "b"))) (VPair (VNum 1, VPair (VNum 10, VNum 20))) [];;
-// val it: envir = [("b", VNum 20); ("a", VNum 10)]
-// > patternMatch (PPair (PPair (PUnderscore, PUnderscore), PPair (PVar "a", PVar "b"))) (VPair (VNum 1, VPair (VNum 10, VNum 20))) [];;
-// System.Exception: expected a pair, but given an int
+
+
+patternMatch (PPair (PUnderscore, PVar "a")) (VPair (VNum 1, VPair (VNum 10, VNum 20))) [];;
+val it: envir = [("a", VPair (VNum 10, VNum 20))]
+
+PPair (PUnderscore, PVar "a");;
+match PPair (PUnderscore, PVar "a") with
+    | PPair (PUnderscore, b) -> snd b;;
+
+patternMatch (PPair (PUnderscore, PVar "a")) (VPair (VNum 1, VPair (VNum 10, VNum 20))) [("x", VNum 50); ("y", VPair (VNum 51, VNum 52))];;
+it: envir = [("a", VPair (VNum 10, VNum 20)); ("x", VNum 50); ("y", VPair (VNum 51, VNum 52))]
+
+
+patternMatch (PPair (PUnderscore, PPair (PVar "a", PVar "b"))) (VPair (VNum 1, VPair (VNum 10, VNum 20))) [];;
+val it: envir = [("b", VNum 20); ("a", VNum 10)]
+
+ PPair (PVar "a", PVar "b");;
+it;;
+
+
+patternMatch (PPair (PPair (PUnderscore, PUnderscore), PPair (PVar "a", PVar "b"))) (VPair (VNum 1, VPair (VNum 10, VNum 20))) [];;
+System.Exception: expected a pair, but given an int
 
 // > eval (Let (PVar "x", Num 1, Plus (Var "x", Var "x"))) [];;
 // val it: value = VNum 2

@@ -285,19 +285,101 @@ let mulValues (v1 : value) (v2 : value) =
 
 // (Write the function patternMatch.)
 
+
+(*
+
+
+
+type pattern =
+    | PUnderscore
+    | PVar of string
+    | PPair of pattern * pattern
+;;
+
+
+
+type value =
+    | VPair of value * value
+    | VNum of int
+;;
+
+
+type envir = (string * value) list
+;;
+*)
+
+
 let rec patternMatch (p : pattern) (v : value) (env : envir) : envir =
-    failwith "Not implemented"
+    match p with
+    | PUnderscore -> env
+    | PVar s -> 
+        match v with
+        | VNum v1 -> (s, v) :: env
+
+        | VPair (v1, v2) -> failwith "expected an int, but given a pair"
+    | PPair (PVar p1, PVar p2) -> 
+        match v with
+        | VPair (v1, v2) -> 
+            let env1 = patternMatch (PVar p1) v1 env
+            patternMatch (PVar p2) v2 env1
+        | VNum a -> failwith "expected a pair, but given an int"
+
+    | PPair (PUnderscore, PVar p2) -> 
+        match v with
+        | VPair (v1, v2) -> (p2, v2) :: env
+           
+        | VNum a -> failwith "expected a pair, but given an int"
+    | PPair (PVar p1, PUnderscore) -> 
+        match v with
+        | VPair (v1, v2) -> (p1, v) :: env
+            
+        | VNum a -> failwith "expected a pair, but given an int"
+
+
+    | PPair (PUnderscore, PUnderscore) -> 
+        match v with
+        | VPair (v1, v2) ->  env
+        | VNum a -> failwith "expected a pair, but given an int"
+
+
+    | PPair (PUnderscore, PPair(p1, p2)) -> 
+        match v with
+        | VPair (_, VPair(v1, v2)) ->  patternMatch (PPair(p1, p2)) (VPair(v1, v2)) env
+        | VNum a -> failwith "expected a pair, but given an int"
+    
+    | PPair (PPair(p1, p2), PUnderscore) -> 
+        match v with
+        | VPair (VPair(v1, v2), _) ->  patternMatch (PPair(p1, p2)) (VPair(v1, v2)) env
+        | VNum a -> failwith "expected a pair, but given an int"
+    
+    | PPair (PPair(p1, p2), PPair(pp1, pp2)) -> 
+        match v with
+        | VPair (VPair(v1, v2), VPair(vv1, vv2)) ->  
+            let env1 = patternMatch (PPair(p1, p2)) (VPair(v1, v2)) env
+            patternMatch (PPair(pp1, pp2)) (VPair(vv1, vv2)) env1
+
+        | VPair(VPair(v1, v2), VNum a)  -> failwith "expected a pair, but given an int"      
+        | VPair(VNum a, VPair(v1, v2))  -> failwith "expected a pair, but given an int"      
+        | VNum a -> failwith "expected a pair, but given an int"
 
 // (Complete the function eval.)
+
+type expr =
+    | Var of string
+    | Let of pattern * expr * expr
+    | Pair of expr * expr
+    | Num of int
+    | Plus of expr * expr
+    | Times of expr * expr
+    
+
 
 let rec eval (e : expr) (env : envir) : value =
     match e with
     | Var x -> lookup x env
-    | Let (p, erhs, ebody) -> 
-        let pVal = eval erhs env
-        let env1  = (p, pVal) :: env
+    | Let (p, Value erhs, ebody) -> 
+        let env1 = patternMatch p erhs env
         eval ebody env1
-
 
     
     | Pair (e1, e2) -> VPair (eval e1 env, eval e2 env)
@@ -306,6 +388,7 @@ let rec eval (e : expr) (env : envir) : value =
     | Times (e1, e2) -> mulValues (eval e1 env) (eval e2 env)
 
 let run e = eval e []
+
 
 
 
@@ -393,9 +476,12 @@ let rec nexprToExpr (e : nexpr) : expr =
 // // val it: value = VPair (VNum 3, VNum 12)
 // eval (nexprToExpr (NLet ("x", NPair (NNum 4, NNum 5), NTimes (NFst (NVar "x"), NSnd (NVar "x"))))) [];;
 // // val it: value = VNum 20
-let v = eval (nexprToExpr (NFst (NSnd (NFst (NVar "x"))))) ["x", VPair (VPair (VPair (VNum 1, VNum 2), VPair (VNum 3, VNum 4)), VNum 5)]
+
+//let v = eval (nexprToExpr (NFst (NSnd (NFst (NVar "x"))))) ["x", VPair (VPair (VPair (VNum 1, VNum 2), VPair (VNum 3, VNum 4)), VNum 5)]
+
 // val it: value = VNum 3
-let t = nexprToExpr (NFst (NPair (NNum 11, NNum 12))) 
+
+//let t = nexprToExpr (NFst (NPair (NNum 11, NNum 12))) 
 
 // (ii) (Complete the function bindPattern used by exprToNexpr.)
 // (ii) We can also convert from expr to nexpr, by replacing each pattern-matching 
