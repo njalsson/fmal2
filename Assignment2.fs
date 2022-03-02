@@ -226,9 +226,22 @@ and parseFactor (ts : token list) : expr * token list =
         | _ -> failwith "left paren without right paren"
     | _  -> failwith "not a factor"
 and parsePattern (ts : token list) : pattern * token list =
-    parseSimplePattern ts
+    match ts with
+    |_ -> 
+        let p, ns =  parseSimplePattern ts
+        match ns with
+        | COMMA:: r -> 
+                    let p2, ns2 = parsePattern r
+                    match p2 with
+                    |_ -> PPair(p,p2), ns2
+        | RPAR :: ts -> p, ns
+        | EQUAL:: ts -> p, ns
+        | [] -> p, ns
+        |_ -> parsePattern ns
 and parseSimplePattern (ts : token list) : pattern * token list =
     match ts with
+    | COMMA :: r -> parsePattern ts
+    | UNDERSCORE :: ts -> PUnderscore, ts
     | NAME x :: ts -> PVar x, ts
     | LPAR :: ts ->
         let p, ts = parsePattern ts
@@ -237,6 +250,7 @@ and parseSimplePattern (ts : token list) : pattern * token list =
         | _ -> failwith "left paren without right paren"
     | LET :: ts -> parsePattern ts
     | EQUAL :: ts -> parsePattern ts
+    | RPAR :: ts -> parsePattern ts
     | _  -> failwith "not a pattern"
 
 
@@ -247,7 +261,7 @@ let lexParse (s : string) : expr = parse (lex s)
 
 // parse [LET; UNDERSCORE; EQUAL; NAME "x"; IN; INT 3];;
 
-// parse [LET; UNDERSCORE; EQUAL; NAME "x"; IN; INT 3];;
+// parse [LET; NAME "x"; COMMA; NAME "y"; EQUAL; LPAR; INT 1; COMMA; INT 2; RPAR; IN; INT 3];;
 
 
 
@@ -364,28 +378,21 @@ let rec patternMatch (p : pattern) (v : value) (env : envir) : envir =
 
 // (Complete the function eval.)
 
-type expr =
-    | Var of string
-    | Let of pattern * expr * expr
-    | Pair of expr * expr
-    | Num of int
-    | Plus of expr * expr
-    | Times of expr * expr
-    
+
 
 
 let rec eval (e : expr) (env : envir) : value =
     match e with
     | Var x -> lookup x env
-    | Let (p, Value erhs, ebody) -> 
-        let env1 = patternMatch p erhs env
-        eval ebody env1
+    // | Let (p, Value erhs, ebody) -> 
+    //     let env1 = patternMatch p erhs env
+    //     eval ebody env1
 
     
-    | Pair (e1, e2) -> VPair (eval e1 env, eval e2 env)
-    | Num i -> VNum i
-    | Plus (e1, e2) -> addValues (eval e1 env) (eval e2 env)
-    | Times (e1, e2) -> mulValues (eval e1 env) (eval e2 env)
+    // | Pair (e1, e2) -> VPair (eval e1 env, eval e2 env)
+    // | Num i -> VNum i
+    // | Plus (e1, e2) -> addValues (eval e1 env) (eval e2 env)
+    // | Times (e1, e2) -> mulValues (eval e1 env) (eval e2 env)
 
 let run e = eval e []
 
