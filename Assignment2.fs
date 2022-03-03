@@ -259,12 +259,6 @@ let parse (ts : token list) : expr =
     if ts = [] then e else failwithf "unconsumed tokens"
 let lexParse (s : string) : expr = parse (lex s)
 
-// parse [LET; UNDERSCORE; EQUAL; NAME "x"; IN; INT 3];;
-
-// parse [LET; NAME "x"; COMMA; NAME "y"; EQUAL; LPAR; INT 1; COMMA; INT 2; RPAR; IN; INT 3];;
-
-
-
 
 
 type value =
@@ -289,6 +283,7 @@ let addValues (v1 : value) (v2 : value) =
 let mulValues (v1 : value) (v2 : value) =
   match v1, v2 with
   | VNum i1 , VNum i2 -> VNum (i1 * i2)
+  |VPair(VNum(x),VNum(y)), VPair(p1,p2)-> VNum(x*y)
   | _ -> failwith "can only multiply numbers"
 
 
@@ -327,7 +322,6 @@ let rec patternMatch (p : pattern) (v : value) (env : envir) : envir =
         match v with
         | VNum v1 -> (s, v) :: env
         | VPair (v1, v2) -> (s, v) :: env
-//failwith "expected an int, but given a pair"
     | PPair (PVar p1, PVar p2) -> 
         match v with
         | VPair (v1, v2) -> 
@@ -387,13 +381,13 @@ let rec patternMatch (p : pattern) (v : value) (env : envir) : envir =
 
 // (Complete the function eval.)
 
-type expr =
-    | Var of string
-    | Let of pattern * expr * expr
-    | Pair of expr * expr
-    | Num of int
-    | Plus of expr * expr
-    | Times of expr * expr
+// type expr =
+//     | Var of string
+//     | Let of pattern * expr * expr
+//     | Pair of expr * expr
+//     | Num of int
+//     | Plus of expr * expr
+//     | Times of expr * expr
 
 
 let rec eval (e : expr) (env : envir) : value =
@@ -468,13 +462,7 @@ let rec neval (e : nexpr) (env : envir) : value =
 ////////////////////////////////////////////////////////////////////////
 // Problem 5                                                          //
 ////////////////////////////////////////////////////////////////////////
-// The type nexpr represents the abstract syntax of a language similar to the previous one, 
-// except that pattern matching is not allowed in let bindings, but NFst and NSnd can be used to get the first 
-// and second components of a pair (they correspond to fst and snd in F#).
-// 5.
-// (i) Write a function nexprToExpr : nexpr -> expr that converts between the two languages. 
-// NFst and NSnd should be implemented by pattern matching. For every expression e : nexpr 
-// and environment env : envir, the results of neval e env and eval (nexprToExpr e) env should be the same.
+
 
 // (i) (Write the function nexprToExpr.)
 
@@ -484,8 +472,6 @@ let rec nexprToExpr (e : nexpr) : expr =
     | NPair(x,y) -> Pair(nexprToExpr x, nexprToExpr y)
     | NVar(x) -> Var(x)
     | NNum(x) -> Num(x)
-    // | NFst(NPair(x,y)) -> fst(nexprToExpr x, nexprToExpr y)
-    // | NSnd(NPair(x,y)) -> snd(nexprToExpr x, nexprToExpr y)
     |NFst(x) ->  
         let a = nexprToExpr x
         match x with
@@ -504,18 +490,11 @@ let rec nexprToExpr (e : nexpr) : expr =
         |NSnd(y) -> nexprToExpr y
         | NPair(m,n) -> nexprToExpr n
         |_ -> nexprToExpr x
-    // | NFst(x) -> nexprToExpr x
-    // | NSnd(y) -> nexprToExpr y
+
     | NPlus(x,y)  -> Plus(nexprToExpr x,nexprToExpr y)
     | NTimes(x,y) -> Times(nexprToExpr x,nexprToExpr y)
 
-// eval (nexprToExpr (NFst (NSnd (NFst (NVar "x"))))) ["x", VPair (VPair (VPair (VNum 1, VNum 2), VPair (VNum 3, VNum 4)), VNum 5)];;
 
-// eval (nexprToExpr (NFst (NSnd (NFst (NVar "x"))))) ["x", VPair (VPair (VPair (VNum 1, VNum 2), VPair (VNum 3, VNum 4)), VNum 5)];;
-
-// (ii) (Complete the function bindPattern used by exprToNexpr.)
-// (ii) We can also convert from expr to nexpr, by replacing each pattern-matching 
-// let binding with several ordinary let bindings that use NFst and NSnd. For example, we can convert
 
 
 let rec bindPattern (p : pattern) (rhs : nexpr) (body : nexpr) : nexpr =
@@ -523,12 +502,6 @@ let rec bindPattern (p : pattern) (rhs : nexpr) (body : nexpr) : nexpr =
   | PUnderscore -> body
   | PVar x -> NLet (x, rhs, body)
   | PPair(p1,p2) -> NFst(NPair((bindPattern p1 rhs body), (bindPattern p2 rhs body)))
-//   | PPair (p1,p2) -> match p1,p2 with
-//                     // |_ -> PPair((bindPattern p1, rhs, body), (bindPattern p2, rhs, body))
-//                     | PPair(PVar(x), PVar(y)),PPair(PVar(m), PVar(n)) -> NPair(NPair(NVar(x),NVar(y)),NPair(NVar(m),NVar(n)))
-//                     | PVar(x), PVar(y) -> NVar(x)
-//                     | PVar(x), PUnderscore -> NPair(NVar(x), body)
-
 
 let rec exprToNexpr (e : expr) : nexpr =
   match e with
@@ -545,12 +518,6 @@ let rec exprToNexpr (e : expr) : nexpr =
   | Times (e1, e2) -> NTimes (exprToNexpr e1, exprToNexpr e2)
 
 
-neval (exprToNexpr (Let (PPair (PVar "x", PUnderscore), Pair (Num 3, Num 4), Let (PPair (PVar "x", PUnderscore), Pair (Num 1, Num 2), Var "x")))) [];;
-// val it: value = VNum 1
-neval (exprToNexpr (Let (PPair (PPair (PVar "x", PVar "y"), PPair (PVar "z", PVar "w")), Var "p", Plus (Var "x", Times (Var "z", Plus (Var "y", Var "w")))))) ["p", VPair (VPair (VNum 1, VNum 2), VPair (VNum 3, VNum 4))];;
-// val it: value = VNum 19
-neval (exprToNexpr (Pair (Let (PPair (PVar "x", PVar "y"), Var "p", Plus (Var "x", Var "y")), Var "p"))) ["p", VPair (VNum 10, VNum 11)];;
-// val it: value = VPair (VNum 21, VPair (VNum 10, VNum 11))
 
 type renvir = (string * int list) list
 type rinstr =
@@ -646,7 +613,6 @@ let rec rcomp (e : nexpr) : rcode =
     | NNum i -> [RNum i]
     | NPlus (e1, e2) -> rcomp e1 @ rcomp e2 @ [RAdd]
     | NTimes (e1, e2) -> rcomp e1 @ rcomp e2 @ [RMul]
-
 
 
 
