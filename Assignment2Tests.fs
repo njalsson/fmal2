@@ -2,21 +2,6 @@ module Assignment2Tests
 
 
 // Test cases for Problem 1
-<<<<<<< HEAD
-
-// > checkPattern (Let (PPair (PVar "x", PPair (PUnderscore, PVar "x")), Pair (Num 1, Pair (Num 2, Num 3)), Num 4));;
-// val it: bool = false
-// > checkAllPatterns (Let (PPair (PVar "x", PVar "y"), Pair (Num 1, Pair (Num 2, Num 3)), Let (PPair (PUnderscore, PVar "x"), Var "y", Num 4)));;
-// val it: bool = true
-// > checkAllPatterns (Let (PPair (PVar "x", PVar "y"), Pair (Num 1, Num 2), Let (PPair (PVar "z", PVar "z"), Pair (Num 3, Num 4), Num 5)));;
-// val it: bool = false
-// > checkPattern (Pair (Var "x", Var "x"));;
-// val it: bool = true
-// > checkAllPatterns (Pair (Num 1, Let (PPair (PVar "x", PVar "x"), Num 2, Num 3)));;
-// val it: bool = false
-// > checkAllPatterns (Pair (Num 1, Let (PPair (PVar "x", PUnderscore), Num 2, Num 3)));;
-// val it: bool = true
-=======
 checkAllPatterns (Let (PPair (PVar "x", PPair (PUnderscore, PVar "x")), Pair (Num 1, Pair (Num 2, Num 3)), Num 4));;
 val it: bool = false
 checkAllPatterns (Let (PPair (PVar "x", PVar "y"), Pair (Num 1, Pair (Num 2, Num 3)), Let (PPair (PUnderscore, PVar "x"), Var "y", Num 4)));;
@@ -31,7 +16,6 @@ checkAllPatterns (Pair (Num 1, Let (PPair (PVar "x", PVar "x"), Num 2, Num 3)));
 val it: bool = false
 checkAllPatterns (Pair (Num 1, Let (PPair (PVar "x", PUnderscore), Num 2, Num 3)));;
 val it: bool = true
->>>>>>> abb0d4434c892d8b3f354ecaf392880e03b45042
 
 
 // Test cases for Problem 2

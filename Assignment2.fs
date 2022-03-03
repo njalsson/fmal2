@@ -226,9 +226,22 @@ and parseFactor (ts : token list) : expr * token list =
         | _ -> failwith "left paren without right paren"
     | _  -> failwith "not a factor"
 and parsePattern (ts : token list) : pattern * token list =
-    parseSimplePattern ts
+    match ts with
+    |_ -> 
+        let p, ns =  parseSimplePattern ts
+        match ns with
+        | COMMA:: r -> 
+                    let p2, ns2 = parsePattern r
+                    match p2 with
+                    |_ -> PPair(p,p2), ns2
+        | RPAR :: ts -> p, ns
+        | EQUAL:: ts -> p, ns
+        | [] -> p, ns
+        |_ -> parsePattern ns
 and parseSimplePattern (ts : token list) : pattern * token list =
     match ts with
+    | COMMA :: r -> parsePattern ts
+    | UNDERSCORE :: ts -> PUnderscore, ts
     | NAME x :: ts -> PVar x, ts
     | LPAR :: ts ->
         let p, ts = parsePattern ts
@@ -237,6 +250,7 @@ and parseSimplePattern (ts : token list) : pattern * token list =
         | _ -> failwith "left paren without right paren"
     | LET :: ts -> parsePattern ts
     | EQUAL :: ts -> parsePattern ts
+    | RPAR :: ts -> parsePattern ts
     | _  -> failwith "not a pattern"
 
 
@@ -247,7 +261,7 @@ let lexParse (s : string) : expr = parse (lex s)
 
 // parse [LET; UNDERSCORE; EQUAL; NAME "x"; IN; INT 3];;
 
-// parse [LET; UNDERSCORE; EQUAL; NAME "x"; IN; INT 3];;
+// parse [LET; NAME "x"; COMMA; NAME "y"; EQUAL; LPAR; INT 1; COMMA; INT 2; RPAR; IN; INT 3];;
 
 
 
@@ -364,22 +378,15 @@ let rec patternMatch (p : pattern) (v : value) (env : envir) : envir =
 
 // (Complete the function eval.)
 
-type expr =
-    | Var of string
-    | Let of pattern * expr * expr
-    | Pair of expr * expr
-    | Num of int
-    | Plus of expr * expr
-    | Times of expr * expr
-    
+
 
 
 let rec eval (e : expr) (env : envir) : value =
     match e with
     | Var x -> lookup x env
-    | Let (p, value, ebody) -> 
-        let env1 = patternMatch p value env
-        eval ebody env1
+    // | Let p,erhs, ebody -> 
+    //     let env1 = patternMatch p erhs env
+    //     eval ebody env1
 
     
     | Pair (e1, e2) -> VPair (eval e1 env, eval e2 env)
@@ -461,27 +468,34 @@ let rec nexprToExpr (e : nexpr) : expr =
     | NPair(x,y) -> Pair(nexprToExpr x, nexprToExpr y)
     | NVar(x) -> Var(x)
     | NNum(x) -> Num(x)
-    | NFst(NPair(x,y)) -> fst(nexprToExpr x, nexprToExpr y)
-    | NSnd(NPair(x,y)) -> snd(nexprToExpr x, nexprToExpr y)
-    // |NFst(x,y) -> fst(nexprToExpr x,nexprToExpr y)
-    | NFst(x) -> nexprToExpr x
-    | NSnd(y) -> nexprToExpr y
+    // | NFst(NPair(x,y)) -> fst(nexprToExpr x, nexprToExpr y)
+    // | NSnd(NPair(x,y)) -> snd(nexprToExpr x, nexprToExpr y)
+    |NFst(x) ->  
+        let a = nexprToExpr x
+        match x with
+        |NFst(y) -> fst(nexprToExpr y, a)
+        |NSnd(y) -> nexprToExpr y
+        | NPair(m,n) -> nexprToExpr m
+        |_ -> nexprToExpr x
+    |NSnd(x) ->  
+        let a = nexprToExpr x
+        match x with
+        |NFst(y) -> 
+            let b = nexprToExpr y
+            match y with
+            |z -> nexprToExpr z
+
+        |NSnd(y) -> nexprToExpr y
+        | NPair(m,n) -> nexprToExpr n
+        |_ -> nexprToExpr x
+    // | NFst(x) -> nexprToExpr x
+    // | NSnd(y) -> nexprToExpr y
     | NPlus(x,y)  -> Plus(nexprToExpr x,nexprToExpr y)
     | NTimes(x,y) -> Times(nexprToExpr x,nexprToExpr y)
 
+// eval (nexprToExpr (NFst (NSnd (NFst (NVar "x"))))) ["x", VPair (VPair (VPair (VNum 1, VNum 2), VPair (VNum 3, VNum 4)), VNum 5)];;
 
-// eval (nexprToExpr (NPair (NPlus (NNum 1, NNum 2), NTimes (NNum 3, NNum 4)))) [];;
-// // val it: value = VPair (VNum 3, VNum 12)
-// eval (nexprToExpr (NPair (NPlus (NNum 1, NNum 2), NTimes (NNum 3, NNum 4)))) [];;
-// // val it: value = VPair (VNum 3, VNum 12)
-// eval (nexprToExpr (NLet ("x", NPair (NNum 4, NNum 5), NTimes (NFst (NVar "x"), NSnd (NVar "x"))))) [];;
-// // val it: value = VNum 20
-
-//let v = eval (nexprToExpr (NFst (NSnd (NFst (NVar "x"))))) ["x", VPair (VPair (VPair (VNum 1, VNum 2), VPair (VNum 3, VNum 4)), VNum 5)]
-
-// val it: value = VNum 3
-
-//let t = nexprToExpr (NFst (NPair (NNum 11, NNum 12))) 
+// eval (nexprToExpr (NFst (NSnd (NFst (NVar "x"))))) ["x", VPair (VPair (VPair (VNum 1, VNum 2), VPair (VNum 3, VNum 4)), VNum 5)];;
 
 // (ii) (Complete the function bindPattern used by exprToNexpr.)
 // (ii) We can also convert from expr to nexpr, by replacing each pattern-matching 
@@ -492,9 +506,12 @@ let rec bindPattern (p : pattern) (rhs : nexpr) (body : nexpr) : nexpr =
   match p with
   | PUnderscore -> body
   | PVar x -> NLet (x, rhs, body)
-  | PPair (p1,p2) -> match p1,p2 with
-                    | PPair(PVar(x), PVar(y)),PPair(PVar(m), PVar(n)) -> NPair(NPair(NVar(x),NVar(y)),NPair(NVar(m),NVar(n)))
-                    | PVar(x), PVar(y) -> NVar(x)
+  | PPair(p1,p2) -> NFst(NPair((bindPattern p1 rhs body), (bindPattern p2 rhs body)))
+//   | PPair (p1,p2) -> match p1,p2 with
+//                     // |_ -> PPair((bindPattern p1, rhs, body), (bindPattern p2, rhs, body))
+//                     | PPair(PVar(x), PVar(y)),PPair(PVar(m), PVar(n)) -> NPair(NPair(NVar(x),NVar(y)),NPair(NVar(m),NVar(n)))
+//                     | PVar(x), PVar(y) -> NVar(x)
+//                     | PVar(x), PUnderscore -> NPair(NVar(x), body)
 
 
 let rec exprToNexpr (e : expr) : nexpr =
@@ -511,9 +528,13 @@ let rec exprToNexpr (e : expr) : nexpr =
   | Plus (e1, e2) -> NPlus (exprToNexpr e1, exprToNexpr e2)
   | Times (e1, e2) -> NTimes (exprToNexpr e1, exprToNexpr e2)
 
-// neval (exprToNexpr (Let (PPair (PVar "x", PUnderscore), Pair (Num 3, Num 4), Let (PPair (PVar "x", PUnderscore), Pair (Num 1, Num 2), Var "x")))) [];;
-let r = neval (exprToNexpr (Let (PPair (PPair (PVar "x", PVar "y"), PPair (PVar "z", PVar "w")), Var "p", Plus (Var "x", Times (Var "z", Plus (Var "y", Var "w")))))) ["p", VPair (VPair (VNum 1, VNum 2), VPair (VNum 3, VNum 4))];;
 
+neval (exprToNexpr (Let (PPair (PVar "x", PUnderscore), Pair (Num 3, Num 4), Let (PPair (PVar "x", PUnderscore), Pair (Num 1, Num 2), Var "x")))) [];;
+// val it: value = VNum 1
+neval (exprToNexpr (Let (PPair (PPair (PVar "x", PVar "y"), PPair (PVar "z", PVar "w")), Var "p", Plus (Var "x", Times (Var "z", Plus (Var "y", Var "w")))))) ["p", VPair (VPair (VNum 1, VNum 2), VPair (VNum 3, VNum 4))];;
+// val it: value = VNum 19
+neval (exprToNexpr (Pair (Let (PPair (PVar "x", PVar "y"), Var "p", Plus (Var "x", Var "y")), Var "p"))) ["p", VPair (VNum 10, VNum 11)];;
+// val it: value = VPair (VNum 21, VPair (VNum 10, VNum 11))
 
 type renvir = (string * int list) list
 type rinstr =
