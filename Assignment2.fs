@@ -309,9 +309,6 @@ type pattern =
     | PVar of string
     | PPair of pattern * pattern
 ;;
-
-
-
 type value =
     | VPair of value * value
     | VNum of int
@@ -329,7 +326,8 @@ let rec patternMatch (p : pattern) (v : value) (env : envir) : envir =
     | PVar s -> 
         match v with
         | VNum v1 -> (s, v) :: env
-        | VPair (v1, v2) -> failwith "expected an int, but given a pair"
+        | VPair (v1, v2) -> (s, v) :: env
+//failwith "expected an int, but given a pair"
     | PPair (PVar p1, PVar p2) -> 
         match v with
         | VPair (v1, v2) -> 
