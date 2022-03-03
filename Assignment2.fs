@@ -377,8 +377,8 @@ type expr =
 let rec eval (e : expr) (env : envir) : value =
     match e with
     | Var x -> lookup x env
-    | Let (p, Value erhs, ebody) -> 
-        let env1 = patternMatch p erhs env
+    | Let (p, value, ebody) -> 
+        let env1 = patternMatch p value env
         eval ebody env1
 
     
