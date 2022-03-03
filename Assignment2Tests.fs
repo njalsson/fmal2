@@ -86,19 +86,31 @@ it;;
 patternMatch (PPair (PPair (PUnderscore, PUnderscore), PPair (PVar "a", PVar "b"))) (VPair (VNum 1, VPair (VNum 10, VNum 20))) [];;
 System.Exception: expected a pair, but given an int
 
-// > eval (Let (PVar "x", Num 1, Plus (Var "x", Var "x"))) [];;
+eval (Let (PVar "x", Num 1, Plus (Var "x", Var "x"))) [];;
 // val it: value = VNum 2
-// > eval (Let (PVar "x", Num 1, Let (PVar "y", Num 2, Plus (Var "x", Var "y")))) [];;
+eval (Let (PVar "x", Num 1, Let (PVar "y", Num 2, Plus (Var "x", Var "y")))) [];;
 // val it: value = VNum 3
-// > eval (Let (PPair (PVar "x", PVar "y"), Pair (Num 1, Num 2), Let (PPair (PVar "z", PPair (PVar "w", PUnderscore)), Pair (Num 1, Pair (Var "x", Var "y")), Plus (Var "z", Var "w")))) [];;
+eval (Let (PPair (PVar "x", PVar "y"), Pair (Num 1, Num 2), Let (PPair (PVar "z", PPair (PVar "w", PUnderscore)), Pair (Num 1, Pair (Var "x", Var "y")), Plus (Var "z", Var "w")))) [];;
 // val it: value = VNum 2
-// > eval (Let (PPair (PVar "x", PVar "y"), Pair (Num 1, Num 2), Let (PPair (PVar "y", PVar "z"), Pair (Num 3, Num 4), Let (PVar "z", Var "x", Plus (Var "x", Plus (Var "y", Var "z")))))) [];;
+eval (Let (PPair (PVar "x", PVar "y"), Pair (Num 1, Num 2), Let (PPair (PVar "y", PVar "z"), Pair (Num 3, Num 4), Let (PVar "z", Var "x", Plus (Var "x", Plus (Var "y", Var "z")))))) [];;
 // val it: value = VNum 5
-// > eval (Let (PPair (PUnderscore, PUnderscore), Num 1, Num 2)) [];;
+eval (Let (PPair (PUnderscore, PUnderscore), Num 1, Num 2)) [];;
 // System.Exception: expected a pair, but given an int
-// > eval (Let (PVar "x", Pair (Num 1, Pair (Num 2, Num 3)), Let (PPair (PUnderscore, PVar "y"), Var "x", Pair (Num 5, Var "y")))) [];;
+eval (Let (PVar "x", Pair (Num 1, Pair (Num 2, Num 3)), Let (PPair (PUnderscore, PVar "y"), Var "x", Pair (Num 5, Var "y")))) [];;
 // val it: value = VPair (VNum 5, VPair (VNum 2, VNum 3))
 
+eval (Let 
+(PPair 
+    (PVar "x", PVar "y"), 
+    Pair (Num 1, Num 2), 
+
+Let 
+    (PPair 
+        (PVar "z", 
+        PPair (PVar "w", PUnderscore)), 
+    Pair 
+        (Num 1, 
+        Pair (Var "x", Var "y")), Plus (Var "z", Var "w")))) [];;
 
 // Test cases for Problem 5
 

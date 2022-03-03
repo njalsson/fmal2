@@ -329,7 +329,6 @@ let rec patternMatch (p : pattern) (v : value) (env : envir) : envir =
     | PVar s -> 
         match v with
         | VNum v1 -> (s, v) :: env
-
         | VPair (v1, v2) -> failwith "expected an int, but given a pair"
     | PPair (PVar p1, PVar p2) -> 
         match v with
@@ -378,15 +377,22 @@ let rec patternMatch (p : pattern) (v : value) (env : envir) : envir =
 
 // (Complete the function eval.)
 
-
+type expr =
+    | Var of string
+    | Let of pattern * expr * expr
+    | Pair of expr * expr
+    | Num of int
+    | Plus of expr * expr
+    | Times of expr * expr
 
 
 let rec eval (e : expr) (env : envir) : value =
     match e with
     | Var x -> lookup x env
-    // | Let p,erhs, ebody -> 
-    //     let env1 = patternMatch p erhs env
-    //     eval ebody env1
+    | Let (p,erhs, ebody) -> 
+        let value = eval erhs env
+        let env1 = patternMatch p value env
+        eval ebody env1
 
     
     | Pair (e1, e2) -> VPair (eval e1 env, eval e2 env)
