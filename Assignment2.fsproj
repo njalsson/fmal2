@@ -4,6 +4,7 @@
     <TargetFramework>net6.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+  <PackageReference Include="FSharp.Core" Version="4.7.2" />
     <Compile Include="Assignment2.fs" />
   </ItemGroup>
 </Project>
