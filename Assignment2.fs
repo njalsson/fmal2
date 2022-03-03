@@ -375,6 +375,18 @@ let rec patternMatch (p : pattern) (v : value) (env : envir) : envir =
         | VPair(VNum a, VPair(v1, v2))  -> failwith "expected a pair, but given an int"      
         | VNum a -> failwith "expected a pair, but given an int"
 
+
+    | PPair (PVar p1, PPair(pp1, pp2)) -> 
+        match v with
+        | VPair (VNum v1, VPair(vv1, vv2)) ->  
+            let env1 = patternMatch (PVar p1) (VNum v1) env
+            patternMatch (PPair(pp1, pp2)) (VPair(vv1, vv2)) env1
+
+        | VPair(VNum a, VPair(v1, v2))  -> failwith "expected a pair, but given an int"      
+        | VPair(VPair(v1, v2), VNum a)  -> failwith "expected a pair, but given an int"      
+        | VPair(VNum a, VPair(v1, v2))  -> failwith "expected a pair, but given an int"      
+        | VNum a -> failwith "expected a pair, but given an int"
+
 // (Complete the function eval.)
 
 type expr =

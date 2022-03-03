@@ -99,18 +99,7 @@ eval (Let (PPair (PUnderscore, PUnderscore), Num 1, Num 2)) [];;
 eval (Let (PVar "x", Pair (Num 1, Pair (Num 2, Num 3)), Let (PPair (PUnderscore, PVar "y"), Var "x", Pair (Num 5, Var "y")))) [];;
 // val it: value = VPair (VNum 5, VPair (VNum 2, VNum 3))
 
-eval (Let 
-(PPair 
-    (PVar "x", PVar "y"), 
-    Pair (Num 1, Num 2), 
-
-Let 
-    (PPair 
-        (PVar "z", 
-        PPair (PVar "w", PUnderscore)), 
-    Pair 
-        (Num 1, 
-        Pair (Var "x", Var "y")), Plus (Var "z", Var "w")))) [];;
+eval (Let (PPair (PVar "z",  PPair (PVar "w", PUnderscore)),  Pair  (Num 1, Pair (Num 1, Num 2)), Plus (Var "z", Var "w"))) [];;
 
 // Test cases for Problem 5
 
